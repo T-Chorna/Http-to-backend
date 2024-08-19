@@ -1,0 +1,51 @@
+body{
+    width: 100vw;
+    min-height: 100vh;
+    background: linear-gradient(70deg, rgb(58, 58, 233), pink);
+    
+}
+
+table{
+    background-color: aliceblue;
+    margin: 16px auto;
+    border-spacing: 0;
+    font-family: "Roboto Slab", serif;
+    width: 70%; /* Занять всю доступную ширину */
+    table-layout: fixed; /* Фиксированная ширина столбцов */
+}
+
+th, td{
+    padding: 8px 20px;
+    transition: background-color 0.3s ease;
+    box-sizing: border-box; 
+    white-space: normal; 
+    word-wrap: break-word; 
+}
+tr{
+    transition: background-color 0.3s ease;
+}
+
+th{
+    background-color: rgb(33, 47, 59);
+    color: aliceblue;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+
+td{
+    border: 1px solid #adadad;
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+tr:hover{
+    background-color: rgb(202, 202, 202);
+}
+
+td:hover{
+    font-weight: 600;
+    background-color: blanchedalmond;
+    border: 1px solid #616161;
+}
