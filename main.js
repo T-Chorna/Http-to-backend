@@ -17,8 +17,8 @@ async function DataTable(config) {
   let table = document.createElement('table');
   table.appendChild(createHeadRow(config));
   table.appendChild(await createBodyRow(config));
-  table.appendChild(createModalInput(config));
   parentElement.appendChild(table);
+  parentElement.appendChild(createModalInput(config));
 }
 
 function createHeadRow(config){
@@ -66,27 +66,151 @@ async function createBodyRow(config){
 function createModalInput(config){
   let modalOverlay = createElement("div", "");
   modalOverlay.setAttribute("class", "modal-overlay");
-  let modal = createElement("div","<h2>Modal</h2>");
+  let modal = createElement("div","");
+  // let modal = createElement("div","<h2>Modal</h2>");
   modal.setAttribute("class", "modal");
   let form = createElement('form',"");
 
   for(let i = 0; i < config.columns.length; i++){
     let input = config.columns[i].input;
+    // console.log(JSON.stringify(input));
+    // console.log(!Array.isArray(input));
     if(!Array.isArray(input)){
-      let label = input.label?input.label:config.columns[i];
-      let labelElement = createElement("label", label);
+      let inputElem = input.type === 'select' ? addSelect(input, config.columns[i].title, config.columns[i].value) 
+                      : addInput(input, config.columns[i].title, config.columns[i].value);
+      form.appendChild(inputElem);
+      continue;
+    }
+    for(let j = 0; j < input.length; j++){
+      let inputElem = input[j].type === 'select' ? addSelect(input[j], config.columns[i].title, config.columns[i].value) 
+                      : addInput(input[j], config.columns[i].title, config.columns[i].value);
+      form.appendChild(inputElem)
     }
   }
-
+  modal.appendChild(form);
   modalOverlay.appendChild(modal);
   return modalOverlay;
+}
+
+function addInput(property, columnTitle, columnValue){
+  let label = property.label ? property.label : columnTitle;
+  let labelElement = createElement("label", label);
+  let inputElement;
+  if(property.type === 'textarea'){
+    inputElement = createElement('textarea', '');
+  } else {
+    inputElement = createElement('input', '');
+  }
+  for(let [key, value] of Object.entries(property)){
+    console.log(JSON.stringify(key) + "   " + JSON.stringify(value));
+    inputElement.setAttribute(key, value);
+  }
+  if(!property.hasOwnProperty("name")){inputElement.setAttribute("name", columnValue);}
+  if(!property.hasOwnProperty("required")){inputElement.setAttribute("required", true);}
+
+  labelElement.appendChild(inputElement);
+  labelElement.setAttribute('for', inputElement.getAttribute("name"));
+  return labelElement;
+}
+
+function addSelect(property, columnTitle, columnValue){
+  let label = property.label ? property.label : columnTitle;
+  let labelElement = createElement("label", label);
+  let selectElement = createElement('select', '');;
+  for(let [key, value] of Object.entries(property)){
+    if(key === 'options'){
+      continue
+    }
+    selectElement.setAttribute(key, value);
+  }
+  if(!property.hasOwnProperty("name")){selectElement.setAttribute("name", columnValue);}
+  // if(!property.hasOwnProperty("required")){inputElement.setAttribute("required", true);}
+  for(let i = 0; i < property.options.length; i++){
+    let option = createElement('option', property.options[i]);
+    option.setAttribute('value', property.options[i]);
+    selectElement.appendChild(option);
+  }
+
+  labelElement.appendChild(selectElement);
+  labelElement.setAttribute('for', selectElement.getAttribute("name"));
+  return labelElement;
 }
 
 {/* <div class="modal-overlay" id="modalOverlay">
 <div class="modal">
     <h2>Модальне вікно</h2>
-    <p>Це просте і симпатичне модальне вікно. Ви можете додати сюди будь-який вміст.</p>
-    <button onclick="closeModal()">Закрити</button>
+     <form action="#" method="post">
+
+        <!-- Текстовое поле -->
+        <div class="form-group">
+            <label for="name">Имя:</label>
+            <input type="text" id="name" name="name" placeholder="Введите ваше имя">
+        </div>
+
+        <!-- Поле для электронной почты -->
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" placeholder="Введите ваш email">
+        </div>
+
+        <!-- Поле для пароля -->
+        <div class="form-group">
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" placeholder="Введите ваш пароль">
+        </div>
+
+        <!-- Поле для номера телефона -->
+        <div class="form-group">
+            <label for="phone">Телефон:</label>
+            <input type="tel" id="phone" name="phone" placeholder="Введите ваш телефон">
+        </div>
+
+        <!-- Поле для даты -->
+        <div class="form-group">
+            <label for="dob">Дата рождения:</label>
+            <input type="date" id="dob" name="dob">
+        </div>
+
+        <!-- Выпадающий список -->
+        <div class="form-group">
+            <label for="country">Страна:</label>
+            <select id="country" name="country">
+                <option value="russia">Россия</option>
+                <option value="ukraine">Украина</option>
+                <option value="belarus">Беларусь</option>
+                <option value="kazakhstan">Казахстан</option>
+            </select>
+        </div>
+
+        <!-- Чекбоксы -->
+        <div class="form-group">
+            <label>Уведомления:</label>
+            <input type="checkbox" id="email_notifications" name="notifications" value="email">
+            <label for="email_notifications">Email</label>
+            <input type="checkbox" id="sms_notifications" name="notifications" value="sms">
+            <label for="sms_notifications">SMS</label>
+        </div>
+
+        <!-- Радио-кнопки -->
+        <div class="form-group">
+            <label>Пол:</label>
+            <input type="radio" id="male" name="gender" value="male">
+            <label for="male">Мужской</label>
+            <input type="radio" id="female" name="gender" value="female">
+            <label for="female">Женский</label>
+        </div>
+
+        <!-- Поле для текста -->
+        <div class="form-group">
+            <label for="message">Сообщение:</label>
+            <textarea id="message" name="message" rows="4" placeholder="Введите ваше сообщение"></textarea>
+        </div>
+
+        <!-- Кнопка отправки -->
+        <div class="form-group">
+            <button type="submit">Отправить</button>
+        </div>
+    </form>
 </div>
 </div> */}
 
@@ -138,7 +262,7 @@ function getAge(birthDateString){
 }
 
 function getColorLabel(color){
-  let square = `<div style="width:100px; height:100px; background-color:${color}"></div>"`;
+  let square = `<div style="width:100px; height:100px; background-color:${color}"></div>`;
   return square;
 }
 
