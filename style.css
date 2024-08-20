@@ -37,7 +37,7 @@ td{
     border: 1px solid #adadad;
     font-size: 16px;
     font-weight: 400;
-    cursor: pointer;
+    /* cursor: pointer; */
 }
 
 tr:hover{
@@ -48,4 +48,79 @@ td:hover{
     font-weight: 600;
     background-color: blanchedalmond;
     border: 1px solid #616161;
+}
+
+.btn-delete{
+    border: 1px solid #8a8989;
+    background-color: #e6e4e4;
+    color: #616161;
+    font-size: 20px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.btn-add-data{
+    font-size: 20px;
+    font-weight: 600;
+    padding: 8px 16px;
+    max-width: 20%;
+    align-self: self-end;
+    margin-right: 15%;
+    cursor: pointer;
+}
+
+
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* display: none; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal h2 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.modal p {
+    color: #666;
+    margin: 20px 0;
+}
+
+.modal button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #3498db;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal button:hover {
+    background-color: #2980b9;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
 }
