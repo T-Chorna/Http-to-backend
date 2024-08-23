@@ -9,18 +9,21 @@ async function DataTable(config) {
   parentElement.style.display = 'flex';
   parentElement.style.flexDirection = 'column';
 
+  let modal = createModalInput(config)
+
   let btnAddData = document.createElement("button");
   btnAddData.setAttribute("class", "btn-add-data");
   btnAddData.innerHTML = "Додати";
+  btnAddData.onclick = ()=>{modal.style.display = 'flex';}
   parentElement.appendChild(btnAddData);
 
   let table = document.createElement('table');
   table.appendChild(createHeadRow(config));
   table.appendChild(await createBodyRow(config));
   parentElement.appendChild(table);
-  parentElement.appendChild(createModalInput(config));
+  parentElement.appendChild(modal);
 }
-
+/**Створення верхівки таблиці з назвами колонок */
 function createHeadRow(config){
   let head = document.createElement('thead');
   let titleRow = document.createElement('tr');
@@ -32,6 +35,7 @@ function createHeadRow(config){
   return head.appendChild(titleRow);
 }
 
+/**Створення тіла таблиці, а саме рядків з інформацією отриманою за вказаною інтернет адресою */
 async function createBodyRow(config){
   let dataObj = await sendRequest(config.apiUrl, 'GET');
   let data = dataObj.data;
@@ -63,6 +67,7 @@ async function createBodyRow(config){
   return body;
 }
 
+/**Створення модального вікна */
 function createModalInput(config){
   let modalOverlay = createElement("div", "");
   modalOverlay.setAttribute("class", "modal-overlay");
@@ -87,11 +92,26 @@ function createModalInput(config){
       form.appendChild(inputElem)
     }
   }
+  let btnContainer = createElement('div', '');
+  btnContainer.setAttribute('class', 'form-btn-container');
+
+  let btnCloseModal = createElement('button', 'Закрити');
+  btnCloseModal.setAttribute('class', 'btn-close-modal');
+  btnCloseModal.onclick = ()=>{modalOverlay.style.display = 'none'};
+  btnContainer.appendChild(btnCloseModal);
+
+  let btnSendForm = createElement('button', 'Додати');
+  btnSendForm.setAttribute('class', 'btn-send-form-modal');
+  btnSendForm.onclick = ()=>{console.log("send form");};
+  btnContainer.appendChild(btnSendForm);
+
+  form.appendChild(btnContainer)
   modal.appendChild(form);
   modalOverlay.appendChild(modal);
   return modalOverlay;
 }
 
+/**Додавання полей для отримання інформації від користувача */
 function addInput(property, columnTitle, columnValue){
   let label = property.label ? property.label : columnTitle;
   let labelElement = createElement("label", label);
@@ -113,6 +133,7 @@ function addInput(property, columnTitle, columnValue){
   return labelElement;
 }
 
+/**Додавання випадаючого списку */
 function addSelect(property, columnTitle, columnValue){
   let label = property.label ? property.label : columnTitle;
   let labelElement = createElement("label", label);
@@ -135,85 +156,7 @@ function addSelect(property, columnTitle, columnValue){
   labelElement.setAttribute('for', selectElement.getAttribute("name"));
   return labelElement;
 }
-
-{/* <div class="modal-overlay" id="modalOverlay">
-<div class="modal">
-    <h2>Модальне вікно</h2>
-     <form action="#" method="post">
-
-        <!-- Текстовое поле -->
-        <div class="form-group">
-            <label for="name">Имя:</label>
-            <input type="text" id="name" name="name" placeholder="Введите ваше имя">
-        </div>
-
-        <!-- Поле для электронной почты -->
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" placeholder="Введите ваш email">
-        </div>
-
-        <!-- Поле для пароля -->
-        <div class="form-group">
-            <label for="password">Пароль:</label>
-            <input type="password" id="password" name="password" placeholder="Введите ваш пароль">
-        </div>
-
-        <!-- Поле для номера телефона -->
-        <div class="form-group">
-            <label for="phone">Телефон:</label>
-            <input type="tel" id="phone" name="phone" placeholder="Введите ваш телефон">
-        </div>
-
-        <!-- Поле для даты -->
-        <div class="form-group">
-            <label for="dob">Дата рождения:</label>
-            <input type="date" id="dob" name="dob">
-        </div>
-
-        <!-- Выпадающий список -->
-        <div class="form-group">
-            <label for="country">Страна:</label>
-            <select id="country" name="country">
-                <option value="russia">Россия</option>
-                <option value="ukraine">Украина</option>
-                <option value="belarus">Беларусь</option>
-                <option value="kazakhstan">Казахстан</option>
-            </select>
-        </div>
-
-        <!-- Чекбоксы -->
-        <div class="form-group">
-            <label>Уведомления:</label>
-            <input type="checkbox" id="email_notifications" name="notifications" value="email">
-            <label for="email_notifications">Email</label>
-            <input type="checkbox" id="sms_notifications" name="notifications" value="sms">
-            <label for="sms_notifications">SMS</label>
-        </div>
-
-        <!-- Радио-кнопки -->
-        <div class="form-group">
-            <label>Пол:</label>
-            <input type="radio" id="male" name="gender" value="male">
-            <label for="male">Мужской</label>
-            <input type="radio" id="female" name="gender" value="female">
-            <label for="female">Женский</label>
-        </div>
-
-        <!-- Поле для текста -->
-        <div class="form-group">
-            <label for="message">Сообщение:</label>
-            <textarea id="message" name="message" rows="4" placeholder="Введите ваше сообщение"></textarea>
-        </div>
-
-        <!-- Кнопка отправки -->
-        <div class="form-group">
-            <button type="submit">Отправить</button>
-        </div>
-    </form>
-</div>
-</div> */}
-
+/**Відправлення запиту на вказану інтернет адресу */
 async function sendRequest(url, method){
   try {
     let response = await fetch(`${url}`, { method: method });
@@ -228,18 +171,22 @@ async function sendRequest(url, method){
   }
 }
 
+
+/**Відповідає за видалення рядка з таблиці */
 async function deleteItem(itemId, config){
   let deleteResponse = await sendRequest(`${config.apiUrl}/${itemId}`, 'DELETE');
   if(!deleteResponse) return;
   await DataTable(config)
 }
 
+/**Створення елементу певного типу з певним змістом */
 function createElement(typeElement, content){
   let elem = document.createElement(typeElement);
   elem.innerHTML = content;
   return elem;
 }
 
+/**Функція для отримання віку. Приймає рядок з датою народження, а повертає скільки років, місяців та днів минуло */
 function getAge(birthDateString){
   let birthDate = new Date(birthDateString);
   let today = new Date();
@@ -261,11 +208,13 @@ function getAge(birthDateString){
   return `${yearDiff} year ${monthDiff} month ${dayDiff} day`
 }
 
+/**Функція для отримання квадратного елемента вказаного кольору */
 function getColorLabel(color){
   let square = `<div style="width:100px; height:100px; background-color:${color}"></div>`;
   return square;
 }
 
+/*
 const config1 = {
  parent: '#usersTable',
  columns: [
@@ -277,7 +226,7 @@ const config1 = {
  apiUrl: "https://mock-api.shpp.me/tchorna/users"
 };
 
-// DataTable(config1);
+DataTable(config1);*/
 
 const config2 = {
   parent: '#productsTable',

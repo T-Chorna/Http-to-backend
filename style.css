@@ -78,8 +78,8 @@ td:hover{
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    /* display: none; */
-    display: flex;
+    display: none;
+    /* display: flex; */
     justify-content: center;
     align-items: center;
 }
@@ -133,3 +133,32 @@ td:hover{
     from { opacity: 0; transform: translateY(-50px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.form-btn-container{
+    display: flex;
+    justify-content: space-around;
+}
+
+.btn-close-modal{
+    font-size: 20px;
+    font-weight: 600;
+    padding: 8px 16px;
+    /* align-self: center; */
+    cursor: pointer;
+    color: #7c7c7c;
+}
+
+.btn-close-modal:hover{
+    color: #141414;
+}
+
+.btn-send-form-modal{
+    font-size: 20px;
+    font-weight: 600;
+    padding: 8px 16px;
+    /* align-self: center; */
+    cursor: pointer;
+    color: #fff;
+    background-color: rgb(33, 47, 59);
+}
+
