@@ -10,7 +10,7 @@ table{
     margin: 16px auto;
     border-spacing: 0;
     font-family: "Roboto Slab", serif;
-    width: 70%; /* Занять всю доступную ширину */
+    min-width: 70%; /* Занять всю доступную ширину */
     table-layout: fixed; /* Фиксированная ширина столбцов */
 }
 

@@ -92,6 +92,23 @@ function createModalInput(config){
       form.appendChild(inputElem)
     }
   }
+  form.appendChild(createFormButtons(modalOverlay, form, config));
+
+  // Обробка натискання клавіші Enter
+  form.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+      console.log('press enter');
+      event.preventDefault(); // Запобігаємо стандартній дії для Enter
+      handleSubmit(form, config);
+    }
+  });
+
+  modal.appendChild(form);
+  modalOverlay.appendChild(modal);
+  return modalOverlay;
+}
+
+function createFormButtons(modalOverlay, form, config){
   let btnContainer = createElement('div', '');
   btnContainer.setAttribute('class', 'form-btn-container');
 
@@ -102,13 +119,58 @@ function createModalInput(config){
 
   let btnSendForm = createElement('button', 'Додати');
   btnSendForm.setAttribute('class', 'btn-send-form-modal');
-  btnSendForm.onclick = ()=>{console.log("send form");};
+  btnSendForm.onclick = (event)=>{event.preventDefault(); handleSubmit(form, config)};
   btnContainer.appendChild(btnSendForm);
+  return btnContainer
+}
 
-  form.appendChild(btnContainer)
-  modal.appendChild(form);
-  modalOverlay.appendChild(modal);
-  return modalOverlay;
+function handleSubmit(form, config) {
+  const formData = new FormData(form);
+  // const dataForSend = {data:{}};
+  const dataForSend = {};
+
+  let hasEmptyFields = false; // Перевірка на наявність порожніх полів
+
+  formData.forEach((value, key) => {
+    // const inputElement = form.querySelector(`[name="${key}"]`);
+    // if (inputElement.type === 'number') {
+    //   dataForSend.data[key] = parseFloat(value); // Перетворюємо рядок на число
+    // } else {
+    //   dataForSend.data[key] = value; // Для інших типів залишаємо значення як є
+    // }
+    const inputElement = form.querySelector(`[name="${key}"]`);
+    if (inputElement.type === 'number') {
+      dataForSend[key] = parseFloat(value); // Перетворюємо рядок на число
+    } else {
+      dataForSend[key] = value; // Для інших типів залишаємо значення як є
+    }
+  });
+
+ // Перевірка на порожні поля і підсвічування їх червоним
+ form.querySelectorAll('input, select').forEach(input => {
+  if (input.value === '') {
+    input.style.borderColor = 'red';
+    hasEmptyFields = true; // Вказуємо, що є порожнє поле
+  } else {
+    input.style.borderColor = ''; // Видаляємо червону рамку, якщо поле заповнено
+  }
+});
+
+if (hasEmptyFields) {
+  console.log('Please fill in all required fields.');
+  return; // Якщо є порожні поля, зупиняємо виконання функції
+}
+
+  sendRequest(config.apiUrl, "PUT", dataForSend);
+
+    // Очищення полів форми з перевіркою на тип color
+    form.querySelectorAll('input, select').forEach(input => {
+      if (input.type === 'color') {
+        input.value = '#000000'; // Установлюємо значення за замовчуванням
+      } else {
+        input.value = ''; // Очищуємо інші поля
+      }
+    });
 }
 
 /**Додавання полей для отримання інформації від користувача */
@@ -122,7 +184,7 @@ function addInput(property, columnTitle, columnValue){
     inputElement = createElement('input', '');
   }
   for(let [key, value] of Object.entries(property)){
-    console.log(JSON.stringify(key) + "   " + JSON.stringify(value));
+    // console.log(JSON.stringify(key) + "   " + JSON.stringify(value));
     inputElement.setAttribute(key, value);
   }
   if(!property.hasOwnProperty("name")){inputElement.setAttribute("name", columnValue);}
@@ -156,10 +218,12 @@ function addSelect(property, columnTitle, columnValue){
   labelElement.setAttribute('for', selectElement.getAttribute("name"));
   return labelElement;
 }
-/**Відправлення запиту на вказану інтернет адресу */
-async function sendRequest(url, method){
+
+
+async function sendRequest(url, method, body){
+  console.log(JSON.stringify(body));
   try {
-    let response = await fetch(`${url}`, { method: method });
+    let response = await fetch(`${url}`, { method: method, body: JSON.stringify(body) });
     if (response.ok) {
       let data = await response.json(); // Обробка JSON
       return data;
