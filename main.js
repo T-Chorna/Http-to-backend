@@ -32,7 +32,8 @@ function createHeadRow(config){
     titleRow.appendChild(createElement('th', config.columns[i].title));
   }
   titleRow.appendChild(createElement('th', 'Дії'));
-  return head.appendChild(titleRow);
+  head.appendChild(titleRow)
+  return head;
 }
 
 /**Створення тіла таблиці, а саме рядків з інформацією отриманою за вказаною інтернет адресою */
@@ -57,10 +58,15 @@ async function createBodyRow(config){
       }
     }
     let actionCell = createElement('td',"");
-    let button = createElement('button', "Видалити");
-    button.setAttribute('class', 'btn-delete');
-    button.onclick = () => {deleteItem(key, config)};
-    actionCell.appendChild(button);
+    let buttonDelete = createElement('button', "Видалити");
+    buttonDelete.setAttribute('class', 'btn-delete');
+    buttonDelete.onclick = () => {deleteItem(key, config)};
+    actionCell.appendChild(buttonDelete);
+
+    let buttonEdit = createElement('button', "Редагувати");
+    buttonEdit.setAttribute('class', 'btn-edit');
+    buttonEdit.onclick = () => {editItem(row, key, config)};
+    actionCell.appendChild(buttonEdit);
     row.appendChild(actionCell);
     body.appendChild(row);
   }
@@ -81,14 +87,14 @@ function createModalInput(config){
     // console.log(JSON.stringify(input));
     // console.log(!Array.isArray(input));
     if(!Array.isArray(input)){
-      let inputElem = input.type === 'select' ? addSelect(input, config.columns[i].title, config.columns[i].value) 
-                      : addInput(input, config.columns[i].title, config.columns[i].value);
+      let inputElem = input.type === 'select' ? addSelectWithLabel(input, config.columns[i].title, config.columns[i].value) 
+                      : addInputWithLabel(input, config.columns[i].title, config.columns[i].value);
       form.appendChild(inputElem);
       continue;
     }
     for(let j = 0; j < input.length; j++){
-      let inputElem = input[j].type === 'select' ? addSelect(input[j], config.columns[i].title, config.columns[i].value) 
-                      : addInput(input[j], config.columns[i].title, config.columns[i].value);
+      let inputElem = input[j].type === 'select' ? addSelectWithLabel(input[j], config.columns[i].title, config.columns[i].value) 
+                      : addInputWithLabel(input[j], config.columns[i].title, config.columns[i].value);
       form.appendChild(inputElem)
     }
   }
@@ -99,7 +105,7 @@ function createModalInput(config){
     if (event.key === 'Enter') {
       console.log('press enter');
       event.preventDefault(); // Запобігаємо стандартній дії для Enter
-      handleSubmit(form, config);
+      handleSubmit(modalOverlay, form, config);
     }
   });
 
@@ -119,12 +125,12 @@ function createFormButtons(modalOverlay, form, config){
 
   let btnSendForm = createElement('button', 'Додати');
   btnSendForm.setAttribute('class', 'btn-send-form-modal');
-  btnSendForm.onclick = (event)=>{event.preventDefault(); handleSubmit(form, config)};
+  btnSendForm.onclick = (event)=>{event.preventDefault(); handleSubmit(modalOverlay, form, config)};
   btnContainer.appendChild(btnSendForm);
   return btnContainer
 }
 
-function handleSubmit(form, config) {
+function handleSubmit(modalOverlay, form, config) {
   const formData = new FormData(form);
   // const dataForSend = {data:{}};
   const dataForSend = {};
@@ -132,36 +138,25 @@ function handleSubmit(form, config) {
   let hasEmptyFields = false; // Перевірка на наявність порожніх полів
 
   formData.forEach((value, key) => {
-    // const inputElement = form.querySelector(`[name="${key}"]`);
-    // if (inputElement.type === 'number') {
-    //   dataForSend.data[key] = parseFloat(value); // Перетворюємо рядок на число
-    // } else {
-    //   dataForSend.data[key] = value; // Для інших типів залишаємо значення як є
-    // }
     const inputElement = form.querySelector(`[name="${key}"]`);
-    if (inputElement.type === 'number') {
+    if(!value){
+      inputElement.style.borderColor = 'red';
+      hasEmptyFields = true; // Вказуємо, що є порожнє поле
+    } else if (inputElement.type === 'number') {
+      inputElement.style.borderColor = 'black';
       dataForSend[key] = parseFloat(value); // Перетворюємо рядок на число
     } else {
+      inputElement.style.borderColor = 'black';
       dataForSend[key] = value; // Для інших типів залишаємо значення як є
     }
   });
 
- // Перевірка на порожні поля і підсвічування їх червоним
- form.querySelectorAll('input, select').forEach(input => {
-  if (input.value === '') {
-    input.style.borderColor = 'red';
-    hasEmptyFields = true; // Вказуємо, що є порожнє поле
-  } else {
-    input.style.borderColor = ''; // Видаляємо червону рамку, якщо поле заповнено
+  if (hasEmptyFields) {
+    console.log('Please fill in all required fields.');
+    return; // Якщо є порожні поля, зупиняємо виконання функції
   }
-});
 
-if (hasEmptyFields) {
-  console.log('Please fill in all required fields.');
-  return; // Якщо є порожні поля, зупиняємо виконання функції
-}
-
-  sendRequest(config.apiUrl, "PUT", dataForSend);
+    sendRequest(config.apiUrl, "POST", dataForSend);
 
     // Очищення полів форми з перевіркою на тип color
     form.querySelectorAll('input, select').forEach(input => {
@@ -171,10 +166,14 @@ if (hasEmptyFields) {
         input.value = ''; // Очищуємо інші поля
       }
     });
+
+    modalOverlay.style.display = 'none'
+    DataTable(config)
+
 }
 
 /**Додавання полей для отримання інформації від користувача */
-function addInput(property, columnTitle, columnValue){
+function addInputWithLabel(property, columnTitle, columnValue){
   let label = property.label ? property.label : columnTitle;
   let labelElement = createElement("label", label);
   let inputElement;
@@ -196,7 +195,7 @@ function addInput(property, columnTitle, columnValue){
 }
 
 /**Додавання випадаючого списку */
-function addSelect(property, columnTitle, columnValue){
+function addSelectWithLabel(property, columnTitle, columnValue){
   let label = property.label ? property.label : columnTitle;
   let labelElement = createElement("label", label);
   let selectElement = createElement('select', '');;
@@ -223,7 +222,19 @@ function addSelect(property, columnTitle, columnValue){
 async function sendRequest(url, method, body){
   console.log(JSON.stringify(body));
   try {
-    let response = await fetch(`${url}`, { method: method, body: JSON.stringify(body) });
+    let response;
+    if(body){
+      response = await fetch(`${url}`, { 
+                    method: method, 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify(body) 
+                  });
+    } else {
+      response = await fetch(`${url}`, { 
+        method: method, 
+      });
+    }
+    
     if (response.ok) {
       let data = await response.json(); // Обробка JSON
       return data;
@@ -274,8 +285,79 @@ function getAge(birthDateString){
 
 /**Функція для отримання квадратного елемента вказаного кольору */
 function getColorLabel(color){
-  let square = `<div style="width:100px; height:100px; background-color:${color}"></div>`;
+  let square = `<div style="width:100px; height:100px; background-color:${color};"></div>`;
   return square;
+}
+
+function editItem(row, itemId, config){
+  let cells = row.querySelectorAll('td');
+  for(let i = 0; i < config.columns.length; i++){
+    let currentCell = cells[i+1];
+    let currentCellValue = currentCell.innerHTML;
+    // console.log(currentCellValue);
+    currentCell.innerHTML = '';
+
+    let input = config.columns[i].input;
+    if(!Array.isArray(input)){
+      let inputElem = input.type === 'select' ? addSelectWithoutLabel(input, config.columns[i].value, currentCellValue) 
+                      : addInputWithoutLabel(input, config.columns[i].title, config.columns[i].value);
+      if(input.type === 'color'){currentCellValue = currentCellValue.match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g)}
+      inputElem.value = currentCellValue;
+      currentCell.appendChild(inputElem);
+      continue;
+    }
+    currentCellValue = currentCellValue.split(' ');
+    console.log(currentCellValue);
+    for(let j = 0; j < input.length; j++){
+      let inputElem = input[j].type === 'select' ? addSelectWithoutLabel(input[j], config.columns[i].value, currentCellValue[j]) 
+                      : addInputWithoutLabel(input[j], config.columns[i].title, config.columns[i].value);
+      if(input.type === 'color'){currentCellValue[j] = currentCellValue[j].match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g)}
+      inputElem.value = currentCellValue[j];
+      currentCell.appendChild(inputElem)
+    }
+  }
+}
+function addInputWithoutLabel(property, columnValue){
+  let inputElement;
+  if(property.type === 'textarea'){
+    inputElement = createElement('textarea', '');
+  } else {
+    inputElement = createElement('input', '');
+  }
+  for(let [key, value] of Object.entries(property)){
+    // console.log(JSON.stringify(key) + "   " + JSON.stringify(value));
+    inputElement.setAttribute(key, value);
+  }
+  if(!property.hasOwnProperty("name")){inputElement.setAttribute("name", columnValue);}
+  if(!property.hasOwnProperty("required")){inputElement.setAttribute("required", true);}
+  return inputElement;
+}
+
+/**Додавання випадаючого списку */
+function addSelectWithoutLabel(property,columnValue, selectedOptions){
+  let selectElement = createElement('select', '');;
+  for(let [key, value] of Object.entries(property)){
+    if(key === 'options'){
+      continue
+    }
+    selectElement.setAttribute(key, value);
+  }
+  if(!property.hasOwnProperty("name")){selectElement.setAttribute("name", columnValue);}
+  for(let i = 0; i < property.options.length; i++){
+    let option = createElement('option', property.options[i]);
+    option.setAttribute('value', property.options[i]);
+
+    console.log(property.options[i]);
+    console.log(selectedOptions);
+    // Умова для вибору значення за замовчуванням
+    if (property.options[i] === selectedOptions) {
+      option.setAttribute('selected', 'selected');
+    }
+
+    selectElement.appendChild(option);
+  }
+
+  return selectElement;
 }
 
 /*
