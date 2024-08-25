@@ -105,7 +105,7 @@ function createModalInput(config){
     if (event.key === 'Enter') {
       console.log('press enter');
       event.preventDefault(); // Запобігаємо стандартній дії для Enter
-      handleSubmit(modalOverlay, form, config);
+      handleSubmitAddItem(modalOverlay, form, config);
     }
   });
 
@@ -125,12 +125,12 @@ function createFormButtons(modalOverlay, form, config){
 
   let btnSendForm = createElement('button', 'Додати');
   btnSendForm.setAttribute('class', 'btn-send-form-modal');
-  btnSendForm.onclick = (event)=>{event.preventDefault(); handleSubmit(modalOverlay, form, config)};
+  btnSendForm.onclick = (event)=>{event.preventDefault(); handleSubmitAddItem(modalOverlay, form, config)};
   btnContainer.appendChild(btnSendForm);
   return btnContainer
 }
 
-function handleSubmit(modalOverlay, form, config) {
+async function handleSubmitAddItem(modalOverlay, form, config) {
   const formData = new FormData(form);
   // const dataForSend = {data:{}};
   const dataForSend = {};
@@ -156,7 +156,7 @@ function handleSubmit(modalOverlay, form, config) {
     return; // Якщо є порожні поля, зупиняємо виконання функції
   }
 
-    sendRequest(config.apiUrl, "POST", dataForSend);
+    await sendRequest(config.apiUrl, "POST", dataForSend);
 
     // Очищення полів форми з перевіркою на тип color
     form.querySelectorAll('input, select').forEach(input => {
@@ -198,7 +198,8 @@ function addInputWithLabel(property, columnTitle, columnValue){
 function addSelectWithLabel(property, columnTitle, columnValue){
   let label = property.label ? property.label : columnTitle;
   let labelElement = createElement("label", label);
-  let selectElement = createElement('select', '');;
+  let selectElement = createElement('select', '');
+
   for(let [key, value] of Object.entries(property)){
     if(key === 'options'){
       continue
@@ -212,6 +213,21 @@ function addSelectWithLabel(property, columnTitle, columnValue){
     option.setAttribute('value', property.options[i]);
     selectElement.appendChild(option);
   }
+
+  selectElement.addEventListener('focus', function() {
+    this.size = 3; // Показываем 3 элемента
+  });
+
+  // При закрытии списка
+  selectElement.addEventListener('blur', function() {
+    this.size = 1; // Возвращаем размер к одному элементу
+  });
+
+  // При выборе элемента
+  selectElement.addEventListener('change', function() {
+    this.size = 1; // Возвращаем размер к одному элементу после выбора
+    this.blur()
+  });
 
   labelElement.appendChild(selectElement);
   labelElement.setAttribute('for', selectElement.getAttribute("name"));
@@ -300,22 +316,35 @@ function editItem(row, itemId, config){
     let input = config.columns[i].input;
     if(!Array.isArray(input)){
       let inputElem = input.type === 'select' ? addSelectWithoutLabel(input, config.columns[i].value, currentCellValue) 
-                      : addInputWithoutLabel(input, config.columns[i].title, config.columns[i].value);
+                      : addInputWithoutLabel(input, config.columns[i].value);
       if(input.type === 'color'){currentCellValue = currentCellValue.match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g)}
       inputElem.value = currentCellValue;
       currentCell.appendChild(inputElem);
       continue;
     }
     currentCellValue = currentCellValue.split(' ');
-    console.log(currentCellValue);
+    // console.log(currentCellValue);
     for(let j = 0; j < input.length; j++){
       let inputElem = input[j].type === 'select' ? addSelectWithoutLabel(input[j], config.columns[i].value, currentCellValue[j]) 
-                      : addInputWithoutLabel(input[j], config.columns[i].title, config.columns[i].value);
+                      : addInputWithoutLabel(input[j], config.columns[i].value);
       if(input.type === 'color'){currentCellValue[j] = currentCellValue[j].match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g)}
       inputElem.value = currentCellValue[j];
       currentCell.appendChild(inputElem)
     }
   }
+
+  let lastCells = cells[cells.length-1];
+  lastCells.querySelector('.btn-delete').style.display = 'none';
+  lastCells.querySelector('.btn-edit').style.display = 'none';
+  let buttonClose = createElement('button', "Закрити");
+  buttonClose.setAttribute('class', 'btn-delete');
+  buttonClose.onclick = () => {DataTable(config)};
+  lastCells.appendChild(buttonClose);
+
+  let buttonEdit = createElement('button', "Зберегти");
+  buttonEdit.setAttribute('class', 'btn-save-edit');
+  buttonEdit.onclick = (event) => {event.preventDefault(); handleSubmitEditItem(row, itemId, config)};
+  lastCells.appendChild(buttonEdit);
 }
 function addInputWithoutLabel(property, columnValue){
   let inputElement;
@@ -335,7 +364,7 @@ function addInputWithoutLabel(property, columnValue){
 
 /**Додавання випадаючого списку */
 function addSelectWithoutLabel(property,columnValue, selectedOptions){
-  let selectElement = createElement('select', '');;
+  let selectElement = createElement('select', '');
   for(let [key, value] of Object.entries(property)){
     if(key === 'options'){
       continue
@@ -347,8 +376,8 @@ function addSelectWithoutLabel(property,columnValue, selectedOptions){
     let option = createElement('option', property.options[i]);
     option.setAttribute('value', property.options[i]);
 
-    console.log(property.options[i]);
-    console.log(selectedOptions);
+    // console.log(property.options[i]);
+    // console.log(selectedOptions);
     // Умова для вибору значення за замовчуванням
     if (property.options[i] === selectedOptions) {
       option.setAttribute('selected', 'selected');
@@ -357,7 +386,61 @@ function addSelectWithoutLabel(property,columnValue, selectedOptions){
     selectElement.appendChild(option);
   }
 
+  selectElement.addEventListener('focus', function() {
+    this.size = 3; // Показываем 3 элемента
+  });
+
+  // При закрытии списка
+  selectElement.addEventListener('blur', function() {
+    this.size = 1; // Возвращаем размер к одному элементу
+  });
+
+  // При выборе элемента
+  selectElement.addEventListener('change', function() {
+    this.size = 1; // Возвращаем размер к одному элементу после выбора
+    this.blur()
+  });
+
   return selectElement;
+}
+
+
+async function handleSubmitEditItem(row, itemId, config) {
+  let inputs = row.querySelectorAll('input');
+  let selects = row.querySelectorAll('select');
+  let texareas = row.querySelectorAll('textarea');
+  let allInputs = [...inputs, ...selects, ...texareas];
+  const dataForSend = {};
+
+  let hasEmptyFields = false; // Перевірка на наявність порожніх полів
+
+
+
+  allInputs.forEach((item) => {
+    const itemValue = item.value;
+    if(!itemValue){
+      item.style.borderColor = 'red';
+      hasEmptyFields = true; // Вказуємо, що є порожнє поле
+    } else if (item.type === 'number') {
+      item.style.borderColor = 'black';
+      dataForSend[item.name] = parseFloat(itemValue); // Перетворюємо рядок на число
+    } else {
+      item.style.borderColor = 'black';
+      dataForSend[item.name] = itemValue; // Для інших типів залишаємо значення як є
+    }
+  });
+
+  if (hasEmptyFields) {
+    console.log('Please fill in all required fields.');
+    return; // Якщо є порожні поля, зупиняємо виконання функції
+  }
+
+  console.log(JSON.stringify(dataForSend));
+
+  await sendRequest(`${config.apiUrl}/${itemId}`, "PUT", dataForSend);
+
+  DataTable(config)
+
 }
 
 /*
@@ -387,7 +470,8 @@ const config2 = {
       value: (product) => `${product.price} ${product.currency}`,
       input: [
         { type: 'number', name: 'price', label: 'Ціна' },
-        { type: 'select', name: 'currency', label: 'Валюта', options: ['$', '€', '₴'], required: false }
+        { type: 'select', name: 'currency', label: 'Валюта', options: ['$', '€', '₴', '£', 'Rp', 'kn', '₨', 'CHF', 
+              'kr', 'R$', 'K', 'руб', 'Gs', '﷼', 'Ft', '฿', 'P', 'Db', '₹', 'Rbl', 'Ls', '₩', '₭', '₡', '₺', 'ден', 'C$', 'Q', '₪', 'лв'], required: false }
       ]
     },
     {

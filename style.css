@@ -69,6 +69,16 @@ td:hover{
     cursor: pointer;
 }
 
+.btn-save-edit{
+    border: 1px solid #080808;
+    background-color: #72dd64;
+    color: #080808;
+    font-size: 20px;
+    padding: 4px 8px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
 .btn-add-data{
     font-size: 20px;
     font-weight: 600;
