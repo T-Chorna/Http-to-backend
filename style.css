@@ -40,6 +40,11 @@ td{
     /* cursor: pointer; */
 }
 
+td img{
+    width: 100px;
+    height: auto;
+}
+
 tr:hover{
     background-color: rgb(202, 202, 202);
 }
@@ -110,8 +115,7 @@ td:hover{
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     text-align: center;
-    max-width: 400px;
-    width: 100%;
+    max-width: 50%;
     animation: fadeIn 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
