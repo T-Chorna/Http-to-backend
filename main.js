@@ -523,14 +523,20 @@ async function deleteItem(itemId, config){
   await DataTable(config)
 }
 
-
-
-
-
-
-
-
-
+/**
+ * Converts a table row into editable form elements for updating the item details.
+ * 
+ * @param {HTMLElement} row - The HTML table row element (`<tr>`) that contains the item to be edited.
+ * @param {string} itemId - The unique identifier for the item being edited.
+ * @param {Object} config - Configuration object that defines the structure of the table and the form fields.
+ * 
+ * This function replaces the content of each cell in the specified row with appropriate input elements for editing.
+ * It handles different types of inputs, including text, number, color, and date, based on the column configuration.
+ * If the column has multiple inputs (e.g., for selecting options), it splits the current cell value and creates multiple 
+ * input elements accordingly.
+ * 
+ * After replacing the cell contents with inputs, it calls `addEditBtns` to add "Save" and "Close" buttons to the last cell of the row.
+ */
 function editItem(row, itemId, config){
   let cells = row.querySelectorAll('td');
   for(let i = 0; i < config.columns.length; i++){
@@ -562,6 +568,19 @@ function editItem(row, itemId, config){
   addEditBtns(cells[cells.length-1], row, itemId, config);
 }
 
+/**
+ * Adds "Save" and "Close" buttons to the specified cell for editing functionality.
+ * 
+ * @param {HTMLElement} cell - The HTML table cell element (`<td>`) where the buttons will be added.
+ * @param {HTMLElement} row - The HTML table row element (`<tr>`) that contains the cell.
+ * @param {string} rowId - The unique identifier for the row being edited.
+ * @param {Object} config - Configuration object that defines the structure of the table and the form fields.
+ *                           - Used to refresh the data table after editing.
+ * 
+ * This function hides the existing "Delete" and "Edit" buttons in the specified cell and adds new "Save" and "Close" buttons.
+ * The "Save" button triggers the `handleSubmitEditItem` function to submit the updated item data.
+ * The "Close" button triggers a refresh of the data table by calling `DataTable`.
+ */
 function addEditBtns(cell, row, rowId, config){
   let lastCells = cell;
   lastCells.querySelector('.btn-delete').style.display = 'none';
@@ -657,7 +676,30 @@ function addSelectWithoutLabel(property,columnValue, selectedOptions){
   return selectElement;
 }
 
-
+/**
+ * Handles the submission of an edited item in the table.
+ * 
+ * This function collects data from all input elements within a specified table row, validates the input values, 
+ * and sends an HTTP PUT request to update the item on the server. It then refreshes the data table to reflect 
+ * the updated item details.
+ * 
+ * @param {HTMLElement} row - The HTML table row element (`<tr>`) containing the editable form fields. 
+ *                             Each cell in this row should have been replaced with input elements for editing.
+ * @param {string} itemId - The unique identifier for the item being edited. This ID is used to target the specific 
+ *                          item on the server for updating.
+ * @param {Object} config - Configuration object that defines the structure of the table and the form fields.
+ *                           - `config.apiUrl`: The base URL for the API where the PUT request will be sent.
+ * 
+ * This function performs the following steps:
+ * 1. Collects all input, select, and textarea elements from the specified row.
+ * 2. Iterates over these elements to validate their values. If any field is empty, it highlights the border in red 
+ *    and sets a flag to indicate that there are empty fields.
+ * 3. If any fields are empty, it logs a message to the console and aborts the submission process.
+ * 4. If all fields are filled, it prepares the data for sending by converting the values of number inputs to floats 
+ *    and storing other values as strings.
+ * 5. Sends an HTTP PUT request to the API to update the item using the specified `itemId` and `dataForSend`.
+ * 6. Refreshes the data table to reflect the updated item by calling `DataTable(config)`.
+ */
 async function handleSubmitEditItem(row, itemId, config) {
   let inputs = row.querySelectorAll('input');
   let selects = row.querySelectorAll('select');
@@ -691,9 +733,15 @@ async function handleSubmitEditItem(row, itemId, config) {
   DataTable(config)
 }
 
-
-
-/**Функція для отримання віку. Приймає рядок з датою народження, а повертає скільки років, місяців та днів минуло */
+/**
+ * Calculates the age in years, months, and days based on the given birth date.
+ * 
+ * This function takes a birth date in ISO 8601 format and computes the age by comparing the birth date 
+ * with the current date. The result is returned as a string in the format "X year Y month Z day".
+ * 
+ * @param {string} birthDateString - The birth date in ISO 8601 format (e.g., "2024-04-11T12:11:19.050Z").
+ * @returns {string} - A string representing the age in years, months, and days (e.g., "0 year 11 month 10 day").
+ */
 function getAge(birthDateString){
   let birthDate = new Date(birthDateString);
   let today = new Date();
@@ -715,6 +763,15 @@ function getAge(birthDateString){
   return `${yearDiff} year ${monthDiff} month ${dayDiff} day`
 }
 
+/**
+ * Calculates the birth date from the given age in years, months, and days.
+ * 
+ * This function takes a string representing the age in years, months, and days (e.g., "0 year 11 month 10 day") 
+ * and calculates the birth date based on that information. It returns the birth date in ISO 8601 format.
+ * 
+ * @param {string} diffDate - A string representing the age in years, months, and days (e.g., "0 year 11 month 10 day").
+ * @returns {string} - The calculated birth date in ISO 8601 format (e.g., "2024-04-11").
+ */
 function getBirthday(diffDate){
   let yearMonthDayDiff = diffDate.split(' ').filter((item) => {return !isNaN(+item)});
   let birthday = new Date();
@@ -723,22 +780,24 @@ function getBirthday(diffDate){
   birthday.setMonth(birthday.getMonth()-yearMonthDayDiff[1]);
   birthday.setFullYear(birthday.getFullYear()-yearMonthDayDiff[0]);
 
-  console.log(JSON.stringify(birthday)); 
-  console.log(JSON.stringify(birthday.getFullYear())); 
-  console.log(JSON.stringify(birthday.getMonth())); 
-  console.log(JSON.stringify(birthday.getDate())); 
-
   let birthdayYear = birthday.getFullYear();
   let birthdayMonth = birthday.getMonth()+1 < 10 ? `0${birthday.getMonth()+1}` : birthday.getMonth()+1;
   let birthdayDay = birthday.getDate() < 10 ? `0${birthday.getDate()}` : birthday.getDate();
 
 
   let resultString =  `${birthdayYear}-${birthdayMonth}-${birthdayDay}`;
-  console.log(resultString); 
   return resultString;
 }
 
-/**Функція для отримання квадратного елемента вказаного кольору */
+/**
+ * Generates an HTML string to display a colored square based on the given color.
+ * 
+ * This function creates an HTML `div` element styled to display a square with the specified background color. 
+ * The size of the square is fixed at 100x100 pixels.
+ * 
+ * @param {string} color - The color code in HEX format (e.g., "#521222").
+ * @returns {string} - An HTML string representing a square with the given background color (e.g., `<div style="width:100px; height:100px; background-color:#521222;"></div>`).
+ */
 function getColorLabel(color){
   let square = `<div style="width:100px; height:100px; background-color:${color};"></div>`;
   return square;
@@ -775,30 +834,30 @@ const config1 = {
 DataTable(config1);
 
 
-// const config2 = {
-//   parent: '#productsTable',
-//   columns: [
-//     {
-//       title: 'Назва', 
-//       value: 'title', 
-//       input: { type: 'text' }
-//     },
-//     {
-//       title: 'Ціна', 
-//       value: (product) => `${product.price} ${product.currency}`,
-//       input: [
-//         { type: 'number', name: 'price', label: 'Ціна' },
-//         { type: 'select', name: 'currency', label: 'Валюта', options: ['$', '€', '₴', '£', 'Rp', 'kn', '₨', 'CHF', 
-//               'kr', 'R$', 'K', 'руб', 'Gs', '﷼', 'Ft', '฿', 'P', 'Db', '₹', 'Rbl', 'Ls', '₩', '₭', '₡', '₺', 'ден', 'C$', 'Q', '₪', 'лв'], required: false }
-//       ]
-//     },
-//     {
-//       title: 'Колір', 
-//       value: (product) => getColorLabel(product.color), // функцію getColorLabel вам потрібно створити
-//       input: { type: 'color', name: 'color' }
-//     }, 
-//   ],
-//   apiUrl: "https://mock-api.shpp.me/tchorna/products"
-// };
+const config2 = {
+  parent: '#productsTable',
+  columns: [
+    {
+      title: 'Назва', 
+      value: 'title', 
+      input: { type: 'text' }
+    },
+    {
+      title: 'Ціна', 
+      value: (product) => `${product.price} ${product.currency}`,
+      input: [
+        { type: 'number', name: 'price', label: 'Ціна' },
+        { type: 'select', name: 'currency', label: 'Валюта', options: ['$', '€', '₴', '£', 'Rp', 'kn', '₨', 'CHF', 
+              'kr', 'R$', 'K', 'руб', 'Gs', '﷼', 'Ft', '฿', 'P', 'Db', '₹', 'Rbl', 'Ls', '₩', '₭', '₡', '₺', 'ден', 'C$', 'Q', '₪', 'лв'], required: false }
+      ]
+    },
+    {
+      title: 'Колір', 
+      value: (product) => getColorLabel(product.color), 
+      input: { type: 'color', name: 'color' }
+    }, 
+  ],
+  apiUrl: "https://mock-api.shpp.me/tchorna/products"
+};
 
-// DataTable(config2);
+DataTable(config2);
