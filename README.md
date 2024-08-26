@@ -1,6 +1,6 @@
 # Dynamic Table Project
 
-##Project Overview
+## Project Overview
 This project is a simple web application that dynamically generates an HTML table based on a given configuration object. The table allows users to view, add, edit, and delete rows of data. The data is fetched from an API, and the structure of the table (including columns and input types) is defined in the configuration object.
 
 ## Project Structure
