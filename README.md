@@ -14,7 +14,7 @@ The project consists of the following files:
 ## How to Use the Project
 1. Clone the Repository:
 ```
-git clone https://github.com/<your-username>/dynamic-table-project.git
+git clone https://github.com/T-Chorna/Http-to-backend.git
 cd dynamic-table-project
 ```
 2. Open the Project:
@@ -67,10 +67,10 @@ The table and form are styled using style.css. You can customize the look and fe
 6. Deployment:
 
 You can deploy this project using GitHub Pages. To do so, push the repository to GitHub and enable GitHub Pages in the repository settings.
-Example URL: https://<your-username>.github.io/dynamic-table-project/
+Example URL: [https://t-chorna.github.io/Http-to-backend/](https://t-chorna.github.io/Http-to-backend/)
 
 ## Live Demo
-A live demo of the project can be viewed here.
+A live demo of the project can be viewed [here](https://t-chorna.github.io/Http-to-backend/).
 
 ## Author
 
