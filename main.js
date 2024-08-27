@@ -550,6 +550,7 @@ function editItem(row, itemId, config){
                       : addInputWithoutLabel(input, config.columns[i].value);
       if(input.type === 'color'){currentCellValue = currentCellValue.match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g)};
       if(input.type === 'date'){currentCellValue = getBirthday(currentCellValue)};
+      if(input.type === 'url'){currentCellValue = extractUrlFromHtml(currentCellValue)};
       inputElem.value = currentCellValue;
       currentCell.appendChild(inputElem);
       continue;
@@ -560,12 +561,27 @@ function editItem(row, itemId, config){
                       : addInputWithoutLabel(input[j], config.columns[i].value);
       if(input.type === 'color'){currentCellValue[j] = currentCellValue[j].match(/#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g)};
       if(input.type === 'date'){currentCellValue = getBirthday(currentCellValue)};
+      if(input.type === 'url'){currentCellValue = extractUrlFromHtml(currentCellValue)};
       inputElem.value = currentCellValue[j];
       currentCell.appendChild(inputElem)
     }
   }
 
   addEditBtns(cells[cells.length-1], row, itemId, config);
+}
+
+/**
+ * Extracts the first URL found in an HTML string.
+ *
+ * This function searches the provided HTML string for the first occurrence of 
+ * an `href` or `src` attribute and extracts its URL value.
+ *
+ * @param {string} htmlString - The HTML string to search for a URL.
+ * @returns {string|null} - The extracted URL as a string, or null if no URL is found.
+ */
+function extractUrlFromHtml(htmlString) {
+  const urlMatch = htmlString.match(/(?:href|src)="([^"]*)"/);
+  return urlMatch ? urlMatch[1] : null;
 }
 
 /**
