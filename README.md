@@ -10,6 +10,7 @@ The project consists of the following files:
 * main.js: The JavaScript file that contains the logic for dynamically creating the table, handling user interactions (like adding, editing, and deleting rows), and communicating with the API.
 * style.css: The CSS file that defines the styling for the webpage, including the table and form elements.
 * README.md: This README file provides an overview of the project, its structure, and usage instructions.
+* favicon.ico
 
 ## How to Use the Project
 1. Clone the Repository:
