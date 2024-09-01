@@ -27,7 +27,7 @@ async function DataTable(config) {
   parentElement.appendChild(table);
   parentElement.appendChild(modal);
 }
-//винесла в окрему функцію показ модального вікна
+
 function showModal(modal){
   modal.style.display = 'flex';
 }
@@ -84,11 +84,11 @@ function createRowWithData(rowNumber, rowId, rowValues, config){
     }
   }
   //створюємо кнопки "Видалити" та "Редагувати" в останній комірці
-  row.appendChild(createActionCell(row, rowId, config));
+  addActionCell(row, rowId, config);
   return row;
 }
 
-function createActionCell(row, rowId, config){
+function addActionCell(row, rowId, config){
   let actionCell = createElement('td',"");
   let buttonDelete = createElement('button', "Видалити");
   buttonDelete.setAttribute('class', 'btn-delete');
@@ -99,7 +99,8 @@ function createActionCell(row, rowId, config){
   buttonEdit.setAttribute('class', 'btn-edit');
   buttonEdit.onclick = () => {editItem(row, rowId, config)};
   actionCell.appendChild(buttonEdit);
-  return actionCell;
+
+  row.appendChild(actionCell);
 }
 
 function createModalInput(config){
@@ -132,7 +133,8 @@ function createModalForm(modalOverlay, config){
       form.appendChild(inputElem)
     }
   }
-  form.appendChild(createFormButtons(modalOverlay, form, config));
+
+  addFormButtons(modalOverlay, form, config);
 
   form.addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
@@ -208,7 +210,7 @@ function addEventListenerForSelect(select){
   });
 }
 
-function createFormButtons(modalOverlay, form, config){
+function addFormButtons(modalOverlay, form, config){
   let btnContainer = createElement('div', '');
   btnContainer.setAttribute('class', 'form-btn-container');
 
@@ -227,7 +229,8 @@ function createFormButtons(modalOverlay, form, config){
     handleSubmitAddItem(modalOverlay, form, config)
   };
   btnContainer.appendChild(btnSendForm);
-  return btnContainer
+
+  form.appendChild(btnContainer);
 }
 
 async function handleSubmitAddItem(modalOverlay, form, config) {
@@ -236,6 +239,7 @@ async function handleSubmitAddItem(modalOverlay, form, config) {
 
   let hasEmptyFields = false; 
 
+  //проходимо по всіх полях форми, якщо якесь не заповнене, робимо колір бордеру червоним
   formData.forEach((value, key) => {
     const inputElement = form.querySelector(`[name="${key}"]`);
     if(!value){
